@@ -141,3 +141,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [ ] Cloud storage integration
 - [ ] Advanced queue management
 - [ ] Webhook notifications
+
+## 📦 Artifacts
+
+- `video-compression-app-1.0.0.jar`: Executable JAR file
+- Source code (zip/tar.gz)
