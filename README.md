@@ -136,9 +136,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🔮 Future Improvements
 
 - [ ] GPU acceleration support
-- [ ] Additional codec support
-- [ ] Web interface
-- [ ] Cloud storage integration
+- [X] Additional codec support
+- [X] Web interface
+- [X] Cloud storage integration
 - [ ] Advanced queue management
 - [ ] Webhook notifications
 
