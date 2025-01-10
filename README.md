@@ -12,6 +12,11 @@ A robust and efficient video compression service built with Spring Boot and FFmp
 - Progress tracking
 - Batch processing capability
 
+## 📸 Screenshots
+
+![Screenshot 1](docs/image.png)
+![Screenshot 2](docs/image-2.png)
+
 ## 🛠️ Prerequisites
 
 - Java 17 or higher
@@ -136,9 +141,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🔮 Future Improvements
 
 - [ ] GPU acceleration support
-- [ ] Additional codec support
-- [ ] Web interface
-- [ ] Cloud storage integration
+- [x] Additional codec support
+- [x] Web interface
+- [x] Cloud storage integration
 - [ ] Advanced queue management
 - [ ] Webhook notifications
 
