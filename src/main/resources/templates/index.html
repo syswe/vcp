@@ -1,132 +1,798 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
   <head>
-    <title>Video Compression</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VCP - Video Compression Platform</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+    <link
+      href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css"
+      rel="stylesheet"
+    />
     <style>
-      .upload-container {
-        max-width: 800px;
-        margin: 50px auto;
-        padding: 20px;
+      :root {
+        --primary-color: #2563eb;
+        --secondary-color: #3b82f6;
+        --accent-color: #60a5fa;
+        --background-color: #f8fafc;
+        --card-background: #ffffff;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
       }
+
+      .vcp-logo {
+        height: 60px;
+        width: auto;
+        margin: 0 auto;
+      }
+
+      body {
+        background-color: var(--background-color);
+        color: var(--text-primary);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+      }
+
+      .titlebar {
+        -webkit-app-region: drag;
+        height: 32px;
+        background: var(--primary-color);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 1rem;
+      }
+
+      .titlebar-controls {
+        -webkit-app-region: no-drag;
+      }
+
+      .titlebar-button {
+        background: none;
+        border: none;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        cursor: pointer;
+      }
+
+      .app-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+
+      .card {
+        background: var(--card-background);
+        border-radius: 1rem;
+        border: none;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        margin-bottom: 2rem;
+      }
+
+      .card-header {
+        background: none;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 1.5rem;
+      }
+
+      .card-body {
+        padding: 1.5rem;
+      }
+
+      .drop-zone {
+        border: 2px dashed var(--accent-color);
+        border-radius: 1rem;
+        padding: 3rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+
+      .drop-zone:hover,
+      .drop-zone.dragover {
+        background: rgba(96, 165, 250, 0.1);
+        border-color: var(--primary-color);
+      }
+
+      .form-control,
+      .form-select {
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        border: 1px solid #e2e8f0;
+      }
+
+      .form-control:focus,
+      .form-select:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25);
+      }
+
+      .btn-primary {
+        background-color: var(--primary-color);
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+
+      .btn-primary:hover {
+        background-color: var(--secondary-color);
+        transform: translateY(-1px);
+      }
+
+      .resolution-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      .resolution-option {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .resolution-option:hover {
+        border-color: var(--accent-color);
+        transform: translateY(-2px);
+      }
+
+      .resolution-option.selected {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+      }
+
+      .custom-resolution {
+        display: none;
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 0.5rem;
+      }
+
+      .progress-container {
+        margin-top: 2rem;
+      }
+
+      .progress {
+        height: 0.5rem;
+        border-radius: 1rem;
+        background-color: #e2e8f0;
+      }
+
+      .progress-bar {
+        background-color: var(--primary-color);
+        border-radius: 1rem;
+      }
+
       .results-container {
-        margin-top: 30px;
+        margin-top: 2rem;
       }
-      .compression-card {
-        margin-bottom: 20px;
+
+      .result-item {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
       }
+
+      .result-item .stats {
+        display: flex;
+        gap: 2rem;
+      }
+
+      .stat {
+        text-align: center;
+      }
+
       .stat-label {
-        font-weight: bold;
-        color: #666;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
       }
-      .file-size {
-        font-family: monospace;
+
+      .stat-value {
+        font-weight: 500;
+        font-size: 1.125rem;
+      }
+
+      @media (max-width: 768px) {
+        .resolution-grid {
+          grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        }
+
+        .result-item {
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .result-item .stats {
+          flex-wrap: wrap;
+          justify-content: center;
+        }
       }
     </style>
   </head>
-  <body class="bg-light">
-    <div class="container upload-container">
-      <h2 class="text-center mb-4">Video Compression Tool</h2>
-
-      <div th:if="${error}" class="alert alert-danger" role="alert">
-        <span th:text="${error}"></span>
+  <body>
+    <!-- Titlebar for desktop app -->
+    <div class="titlebar">
+      <div class="titlebar-title">VCP Desktop</div>
+      <div class="titlebar-controls">
+        <button class="titlebar-button" id="minimizeBtn">
+          <i class="mdi mdi-window-minimize"></i>
+        </button>
+        <button class="titlebar-button" id="maximizeBtn">
+          <i class="mdi mdi-window-maximize"></i>
+        </button>
+        <button class="titlebar-button" id="closeBtn">
+          <i class="mdi mdi-close"></i>
+        </button>
       </div>
+    </div>
 
-      <div th:if="${success}" class="alert alert-success" role="alert">
-        <span th:text="${success}"></span>
-      </div>
-
+    <div class="app-container">
       <div class="card">
+        <div class="card-header">
+          <div class="text-center">
+            <img
+              src="/images/vcp-logo.png"
+              alt="VCP Logo"
+              class="vcp-logo mb-2"
+            />
+          </div>
+        </div>
         <div class="card-body">
           <form
+            id="uploadForm"
             method="POST"
             action="/upload"
             enctype="multipart/form-data"
-            class="mb-3"
           >
-            <div class="mb-3">
-              <label for="video" class="form-label">Select Video File</label>
+            <div class="drop-zone" id="dropZone">
+              <i class="mdi mdi-upload fs-1 mb-3"></i>
+              <h5>Drag & Drop Video Files Here</h5>
+              <p class="text-muted">or click to select files</p>
               <input
                 type="file"
-                class="form-control"
                 id="video"
                 name="video"
                 accept="video/*"
-                required
+                multiple
+                class="d-none"
               />
             </div>
-            <button type="submit" class="btn btn-primary">
-              Upload and Process
-            </button>
-          </form>
-        </div>
-      </div>
 
-      <!-- Compression Results -->
-      <div th:if="${results}" class="results-container">
-        <h3 class="mb-4">Compression Results</h3>
-        <div class="row">
-          <div th:each="result : ${results}" class="col-md-6">
-            <div class="card compression-card">
-              <div class="card-header">
-                <h5
-                  class="card-title mb-0"
-                  th:text="${result.resolution + ' Version'}"
-                >
-                  Resolution
-                </h5>
+            <div class="selected-files mt-3 d-none">
+              <h6>Selected Files:</h6>
+              <ul id="fileList" class="list-group"></ul>
+            </div>
+
+            <div class="compression-options mt-4">
+              <h5 class="mb-3">Compression Settings</h5>
+
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Quality Preset</label>
+                  <select class="form-select" name="preset">
+                    <option
+                      th:each="preset : ${presets}"
+                      th:value="${preset}"
+                      th:text="${preset.name().toLowerCase()}"
+                      th:selected="${preset.name() == 'MEDIUM'}"
+                    ></option>
+                  </select>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label">Frame Rate</label>
+                  <select class="form-select" name="frameRate">
+                    <option
+                      th:each="fps : ${frameRates}"
+                      th:value="${fps}"
+                      th:text="${fps + ' FPS'}"
+                      th:selected="${fps == 30}"
+                    ></option>
+                  </select>
+                </div>
               </div>
-              <div class="card-body">
-                <div class="mb-2">
-                  <span class="stat-label">Original Size:</span>
-                  <span
-                    class="file-size"
-                    th:text="${#numbers.formatDecimal(result.originalSize/1048576.0, 1, 3) + ' MB'}"
-                    >Size</span
-                  >
+
+              <div class="mt-4">
+                <label class="form-label">Target Resolutions</label>
+                <div class="resolution-grid" id="resolutionOptions">
+                  <!-- Dynamically populated -->
                 </div>
-                <div class="mb-2">
-                  <span class="stat-label">Compressed Size:</span>
-                  <span
-                    class="file-size"
-                    th:text="${#numbers.formatDecimal(result.compressedSize/1048576.0, 1, 3) + ' MB'}"
-                    >Size</span
-                  >
+
+                <div class="form-check mt-3">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="customResolution"
+                  />
+                  <label class="form-check-label" for="customResolution">
+                    Add Custom Resolution
+                  </label>
                 </div>
-                <div class="mb-2">
-                  <span class="stat-label">Compression Ratio:</span>
-                  <span
-                    th:text="${#numbers.formatDecimal(result.compressionRatio * 100, 1, 2) + '%'}"
-                    >Ratio</span
-                  >
+
+                <div class="custom-resolution" id="customResolutionInputs">
+                  <div class="row g-3">
+                    <div class="col-sm-4">
+                      <label class="form-label">Width</label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="customWidth"
+                        placeholder="e.g., 1920"
+                      />
+                    </div>
+                    <div class="col-sm-4">
+                      <label class="form-label">Height</label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="customHeight"
+                        placeholder="e.g., 1080"
+                      />
+                    </div>
+                    <div class="col-sm-4">
+                      <label class="form-label">&nbsp;</label>
+                      <button
+                        type="button"
+                        class="btn btn-primary w-100"
+                        id="addCustomResolution"
+                      >
+                        Add Resolution
+                      </button>
+                    </div>
+                  </div>
+                  <div class="form-check mt-3">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="maintainAspectRatio"
+                      checked
+                    />
+                    <label class="form-check-label" for="maintainAspectRatio">
+                      Maintain Aspect Ratio
+                    </label>
+                  </div>
                 </div>
-                <div class="mb-2">
-                  <span class="stat-label">Original Resolution:</span>
-                  <span th:text="${result.originalResolution}">Resolution</span>
+              </div>
+
+              <div class="row g-3 mt-3">
+                <div class="col-md-6">
+                  <label class="form-label">Output Format</label>
+                  <select class="form-select" name="outputFormat">
+                    <option value="mp4" selected>MP4</option>
+                    <option value="webm">WebM</option>
+                    <option value="mkv">MKV</option>
+                  </select>
                 </div>
-                <div class="mb-2">
-                  <span class="stat-label">Bitrate:</span>
-                  <span
-                    th:text="${#numbers.formatDecimal(result.bitrate/1000000.0, 1, 3) + ' Mbps'}"
-                    >Bitrate</span
-                  >
+
+                <div class="col-md-6">
+                  <label class="form-label">Output Directory</label>
+                  <div class="input-group">
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="outputDirectory"
+                      name="outputDirectory"
+                      readonly
+                    />
+                    <button
+                      class="btn btn-outline-secondary"
+                      type="button"
+                      id="selectDirectory"
+                    >
+                      Browse
+                    </button>
+                  </div>
                 </div>
-                <div class="mb-2">
-                  <span class="stat-label">Duration:</span>
-                  <span th:text="${result.duration + ' seconds'}"
-                    >Duration</span
-                  >
+              </div>
+
+              <div class="mt-4">
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="maintainOriginalSize"
+                    name="maintainOriginalSize"
+                  />
+                  <label class="form-check-label" for="maintainOriginalSize">
+                    Maintain Original File Size
+                  </label>
                 </div>
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="preserveAudioQuality"
+                    name="preserveAudioQuality"
+                    checked
+                  />
+                  <label class="form-check-label" for="preserveAudioQuality">
+                    Preserve Audio Quality
+                  </label>
+                </div>
+              </div>
+
+              <div class="mt-4">
+                <button
+                  type="submit"
+                  class="btn btn-primary w-100"
+                  id="processButton"
+                >
+                  <i class="mdi mdi-play me-2"></i>Start Processing
+                </button>
               </div>
             </div>
+          </form>
+
+          <div class="progress-container d-none">
+            <h6>Processing Progress</h6>
+            <div class="progress">
+              <div
+                class="progress-bar"
+                role="progressbar"
+                style="width: 0%"
+              ></div>
+            </div>
+            <small class="text-muted" id="progressText"
+              >Preparing files...</small
+            >
+          </div>
+
+          <div class="results-container d-none">
+            <h5 class="mb-3">Results</h5>
+            <div id="resultsList"></div>
           </div>
         </div>
       </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Window controls for desktop app
+      if (window.electron) {
+        document.getElementById("minimizeBtn").addEventListener("click", () => {
+          window.electron.minimize();
+        });
+
+        document.getElementById("maximizeBtn").addEventListener("click", () => {
+          window.electron.maximize();
+        });
+
+        document.getElementById("closeBtn").addEventListener("click", () => {
+          window.electron.close();
+        });
+      } else {
+        document.querySelector(".titlebar").style.display = "none";
+      }
+
+      // File handling
+      const dropZone = document.getElementById("dropZone");
+      const fileInput = document.getElementById("video");
+      const fileList = document.getElementById("fileList");
+      const selectedFiles = document.querySelector(".selected-files");
+
+      dropZone.addEventListener("click", () => fileInput.click());
+
+      dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropZone.classList.add("dragover");
+      });
+
+      dropZone.addEventListener("dragleave", () => {
+        dropZone.classList.remove("dragover");
+      });
+
+      dropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropZone.classList.remove("dragover");
+        handleFiles(e.dataTransfer.files);
+      });
+
+      fileInput.addEventListener("change", () => {
+        handleFiles(fileInput.files);
+      });
+
+      function handleFiles(files) {
+        selectedFiles.classList.remove("d-none");
+        fileList.innerHTML = "";
+        Array.from(files).forEach((file) => {
+          const item = document.createElement("li");
+          item.className =
+            "list-group-item d-flex justify-content-between align-items-center";
+          item.innerHTML = `
+                    <span>${file.name}</span>
+                    <span class="badge bg-primary rounded-pill">${formatFileSize(
+                      file.size
+                    )}</span>
+                `;
+          fileList.appendChild(item);
+        });
+      }
+
+      function formatFileSize(bytes) {
+        if (bytes === 0) return "0 Bytes";
+        const k = 1024;
+        const sizes = ["Bytes", "KB", "MB", "GB"];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+      }
+
+      // Resolution handling
+      const resolutionOptions = document.getElementById("resolutionOptions");
+      const customResolutionCheck = document.getElementById("customResolution");
+      const customResolutionInputs = document.getElementById(
+        "customResolutionInputs"
+      );
+      const addCustomResolutionBtn = document.getElementById(
+        "addCustomResolution"
+      );
+
+      customResolutionCheck.addEventListener("change", () => {
+        customResolutionInputs.style.display = customResolutionCheck.checked
+          ? "block"
+          : "none";
+      });
+
+      // Load available resolutions when a video is selected
+      fileInput.addEventListener("change", async () => {
+        if (fileInput.files.length > 0) {
+          const formData = new FormData();
+          formData.append("video", fileInput.files[0]);
+
+          try {
+            const response = await fetch("/api/v1/detect-resolutions", {
+              method: "POST",
+              body: formData,
+            });
+
+            if (response.ok) {
+              const resolutions = await response.json();
+              updateResolutionOptions(resolutions);
+            }
+          } catch (error) {
+            console.error("Error detecting resolutions:", error);
+          }
+        }
+      });
+
+      function updateResolutionOptions(resolutions) {
+        resolutionOptions.innerHTML = "";
+        resolutions.forEach((resolution) => {
+          const option = document.createElement("div");
+          option.className = "resolution-option";
+          option.dataset.resolution = resolution;
+          option.innerHTML = `
+                    <input type="checkbox" name="resolutions" value="${resolution}" class="d-none">
+                    <div class="resolution-label">${formatResolution(
+                      resolution
+                    )}</div>
+                `;
+          option.addEventListener("click", () => {
+            option.classList.toggle("selected");
+            option.querySelector("input").checked =
+              option.classList.contains("selected");
+          });
+          resolutionOptions.appendChild(option);
+        });
+      }
+
+      function formatResolution(resolution) {
+        switch (resolution) {
+          case "ORIGINAL":
+            return "Original";
+          case "UHD_4K":
+            return "4K (3840×2160)";
+          case "QHD":
+            return "2K (2560×1440)";
+          case "FHD":
+            return "1080p";
+          case "HD":
+            return "720p";
+          case "SD":
+            return "480p";
+          default:
+            return resolution;
+        }
+      }
+
+      // Form submission
+      const uploadForm = document.getElementById("uploadForm");
+      const progressContainer = document.querySelector(".progress-container");
+      const progressBar = document.querySelector(".progress-bar");
+      const progressText = document.getElementById("progressText");
+      const resultsContainer = document.querySelector(".results-container");
+      const resultsList = document.getElementById("resultsList");
+
+      // Load default output directory on page load
+      fetch("/api/v1/output-directory")
+        .then((response) => response.json())
+        .then((data) => {
+          outputDirectoryInput.value = data.directory;
+          outputDirectoryInput.setAttribute("placeholder", data.directory);
+        })
+        .catch((error) => {
+          console.error("Error loading default directory:", error);
+        });
+
+      uploadForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        // Check if files are selected
+        if (!fileInput.files.length) {
+          alert("Please select at least one video file");
+          return;
+        }
+
+        // Check if at least one resolution is selected
+        const selectedResolutions = document.querySelectorAll(
+          'input[name="resolutions"]:checked'
+        );
+        if (!selectedResolutions.length) {
+          alert("Please select at least one target resolution");
+          return;
+        }
+
+        const formData = new FormData();
+
+        // Append files with correct name
+        Array.from(fileInput.files).forEach((file) => {
+          formData.append("files", file);
+        });
+
+        // Append other form data
+        formData.append(
+          "preset",
+          document.querySelector('select[name="preset"]').value
+        );
+        selectedResolutions.forEach((resolution) => {
+          formData.append("resolutions", resolution.value);
+        });
+        formData.append(
+          "frameRate",
+          document.querySelector('select[name="frameRate"]').value
+        );
+        formData.append(
+          "maintainOriginalSize",
+          document.getElementById("maintainOriginalSize").checked
+        );
+        formData.append(
+          "preserveAudioQuality",
+          document.getElementById("preserveAudioQuality").checked
+        );
+        formData.append(
+          "outputFormat",
+          document.querySelector('select[name="outputFormat"]').value
+        );
+
+        if (outputDirectoryInput.value) {
+          formData.append("outputDirectory", outputDirectoryInput.value);
+        }
+
+        // Show progress
+        progressContainer.classList.remove("d-none");
+        progressText.textContent = "Processing videos...";
+        progressText.classList.remove("text-danger");
+        progressBar.style.width = "0%";
+
+        try {
+          const response = await fetch("/api/v1/compress", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (response.ok) {
+            const results = await response.json();
+            progressBar.style.width = "100%";
+            progressText.textContent = "Processing complete!";
+            showResults(results);
+          } else {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Compression failed");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          progressText.textContent = "Error: " + error.message;
+          progressText.classList.add("text-danger");
+          progressBar.classList.add("bg-danger");
+        }
+      });
+
+      function showResults(results) {
+        resultsContainer.classList.remove("d-none");
+        resultsList.innerHTML = "";
+
+        results.forEach((result) => {
+          const item = document.createElement("div");
+          item.className = "result-item";
+          item.innerHTML = `
+                    <div class="file-info">
+                        <h6 class="mb-1">${result.fileName}</h6>
+                        <small class="text-muted">${result.resolution}</small>
+                    </div>
+                    <div class="stats">
+                        <div class="stat">
+                            <div class="stat-label">Original Size</div>
+                            <div class="stat-value">${formatFileSize(
+                              result.originalSize
+                            )}</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Compressed Size</div>
+                            <div class="stat-value">${formatFileSize(
+                              result.compressedSize
+                            )}</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Ratio</div>
+                            <div class="stat-value">${result.compressionRatio.toFixed(
+                              2
+                            )}x</div>
+                        </div>
+                    </div>
+                `;
+          resultsList.appendChild(item);
+        });
+      }
+
+      // Directory selection
+      const selectDirectoryBtn = document.getElementById("selectDirectory");
+      const outputDirectoryInput = document.getElementById("outputDirectory");
+
+      // Handle directory selection for both web and desktop
+      selectDirectoryBtn.addEventListener("click", async () => {
+        if (window.electron) {
+          // Desktop app: use native dialog
+          const directory = await window.electron.selectDirectory();
+          if (directory) {
+            outputDirectoryInput.value = directory;
+          }
+        } else {
+          // Web app: use custom directory input
+          const input = document.createElement("input");
+          input.type = "file";
+          input.webkitdirectory = true;
+          input.style.display = "none";
+
+          input.addEventListener("change", (e) => {
+            if (e.target.files.length > 0) {
+              const path = e.target.files[0].path
+                .split("\\")
+                .slice(0, -1)
+                .join("\\");
+              outputDirectoryInput.value = path;
+
+              // Update server with new directory
+              fetch("/api/v1/output-directory", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: `directory=${encodeURIComponent(path)}`,
+              });
+            }
+          });
+
+          document.body.appendChild(input);
+          input.click();
+          document.body.removeChild(input);
+        }
+      });
+    </script>
   </body>
 </html>

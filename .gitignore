@@ -59,3 +59,10 @@ Thumbs.db
 *.webm
 *.flv
 *.wmv
+
+# Electron
+electron/
+
+.cursorrules
+ROADMAP.md 
+CHANGES.md 
