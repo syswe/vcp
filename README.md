@@ -8,7 +8,8 @@ A robust and efficient video compression service built with Spring Boot and FFmp
 
 #### WEB GUI
 
-![WEBGUI](image-2.png)
+![WEBGUI](docs/image.png)
+![After Completion](docs/image-1.png)
 
 #### DESKTOP APP Support Added check our [Release Page](https://github.com/syswe/vcp/releases) !
 
