@@ -28,6 +28,7 @@ coming soon brew pkg on macOS !
 - Progress tracking and detailed results
 - Modern, responsive web interface
 - OpenAPI/Swagger documentation
+- HLS (m3u8) streaming format support
 
 ## 📚 API Documentation
 
@@ -50,7 +51,7 @@ Content-Type: multipart/form-data
 - `frameRate`: Target frame rate in fps (default: 30)
 - `maintainOriginalSize`: Whether to maintain original file size (default: false)
 - `preserveAudioQuality`: Whether to preserve original audio quality (default: true)
-- `outputFormat`: Output video format (mp4/webm/mkv, default: mp4)
+- `outputFormat`: Output video format (mp4/webm/mkv/m3u8, default: mp4)
 
 **Example:**
 
@@ -174,8 +175,18 @@ To use custom resolutions, format the resolution parameter as:
 
 - Maintain original size
 - Preserve audio quality
-- Multiple output formats (MP4, WebM, MKV)
+- Multiple output formats (MP4, WebM, MKV, HLS)
 - Custom output naming
+- HLS streaming support with configurable segments
+
+### HLS Output Format
+
+When using the HLS (m3u8) output format:
+
+- Creates a separate directory for HLS segments
+- Generates 10-second segments by default
+- Maintains all segments in the playlist
+- Output structure: `filename_hls/stream.m3u8` and `filename_hls/segment{n}.ts`
 
 ## 📦 Prerequisites
 

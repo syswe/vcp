@@ -249,8 +249,37 @@ public class VideoProcessingService {
 
         FFmpegBuilder builder = new FFmpegBuilder()
             .setInput(inputPath)
-            .overrideOutputFiles(true)
-            .addOutput(outputPath)
+            .overrideOutputFiles(true);
+
+        if ("m3u8".equals(config.getOutputFormat())) {
+            // For HLS, create a directory for segments
+            String hlsDir = outputPath.substring(0, outputPath.lastIndexOf('.')) + "_hls";
+            try {
+                Files.createDirectories(Paths.get(hlsDir));
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to create HLS directory", e);
+            }
+            
+            // Configure HLS output
+            builder.addOutput(Paths.get(hlsDir, "stream.m3u8").toString())
+                .setFormat("hls")
+                .setVideoCodec("libx264")
+                .setVideoFilter(scaleFilter)
+                .setVideoFrameRate(config.getFrameRate())
+                .setVideoBitRate(config.getPreset().getBitrate())
+                .setAudioCodec("aac")
+                .setAudioChannels(2)
+                .setAudioBitRate(config.isPreserveAudioQuality() ? 192_000 : 128_000)
+                .setStrict(FFmpegBuilder.Strict.EXPERIMENTAL)
+                .addExtraArgs("-hls_time", "10") // 10 second segments
+                .addExtraArgs("-hls_list_size", "0") // Keep all segments
+                .addExtraArgs("-hls_segment_filename", Paths.get(hlsDir, "segment%d.ts").toString())
+                .addExtraArgs("-preset", config.getPreset().getSpeed())
+                .addExtraArgs("-crf", String.valueOf(config.getPreset().getCrf()))
+                .done();
+        } else {
+            // Standard video output
+            builder.addOutput(outputPath)
                 .setVideoCodec("libx264")
                 .setVideoFilter(scaleFilter)
                 .setVideoFrameRate(config.getFrameRate())
@@ -262,22 +291,55 @@ public class VideoProcessingService {
                 .addExtraArgs("-preset", config.getPreset().getSpeed())
                 .addExtraArgs("-crf", String.valueOf(config.getPreset().getCrf()))
                 .done();
+        }
 
         FFmpegExecutor executor = new FFmpegExecutor(ffmpeg, ffprobe);
         executor.createJob(builder).run();
 
-        File outputFile = new File(outputPath);
-        return CompressionResult.builder()
-            .fileName(new File(outputPath).getName())
-            .resolution(targetWidth + "x" + targetHeight)
-            .originalSize(originalSize)
-            .compressedSize(outputFile.length())
-            .compressionRatio((double) originalSize / outputFile.length())
-            .originalResolution(originalResolution)
-            .bitrate(config.getPreset().getBitrate())
-            .duration(duration)
-            .outputPath(outputPath)
-            .build();
+        if ("m3u8".equals(config.getOutputFormat())) {
+            // For HLS, calculate total size of all segments
+            String hlsDir = outputPath.substring(0, outputPath.lastIndexOf('.')) + "_hls";
+            long totalSize = 0;
+            try {
+                totalSize = Files.walk(Paths.get(hlsDir))
+                    .filter(p -> p.toString().endsWith(".ts"))
+                    .mapToLong(p -> {
+                        try {
+                            return Files.size(p);
+                        } catch (IOException e) {
+                            return 0L;
+                        }
+                    })
+                    .sum();
+            } catch (IOException e) {
+                log.error("Error calculating HLS segments size", e);
+            }
+
+            return CompressionResult.builder()
+                .fileName(new File(outputPath).getName())
+                .resolution(targetWidth + "x" + targetHeight)
+                .originalSize(originalSize)
+                .compressedSize(totalSize)
+                .compressionRatio(totalSize > 0 ? (double) originalSize / totalSize : 0.0)
+                .originalResolution(originalResolution)
+                .bitrate(config.getPreset().getBitrate())
+                .duration(duration)
+                .outputPath(outputPath.substring(0, outputPath.lastIndexOf('.')) + "_hls/stream.m3u8")
+                .build();
+        } else {
+            File outputFile = new File(outputPath);
+            return CompressionResult.builder()
+                .fileName(new File(outputPath).getName())
+                .resolution(targetWidth + "x" + targetHeight)
+                .originalSize(originalSize)
+                .compressedSize(outputFile.length())
+                .compressionRatio((double) originalSize / outputFile.length())
+                .originalResolution(originalResolution)
+                .bitrate(config.getPreset().getBitrate())
+                .duration(duration)
+                .outputPath(outputPath)
+                .build();
+        }
     }
 
     public List<CompressionConfig.Resolution> getAvailableResolutions(MultipartFile file) throws IOException {
